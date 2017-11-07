@@ -1,0 +1,29 @@
+main:		addiu		$4, $0, 0x8000		#a = 0x8000
+		addiu		$5, $0, 0x00A9		#b = 0x00A9
+		addiu		$16, $0, 1974		#c = 1974
+		multu		$4, $4			#a * a
+		mflo		$17				#x = a * a
+		sw		$17,32($0)			#store x in 0x20
+		multu		$17, $5			#x * b
+		mflo		$18				#y = x * b
+		sw		$18, 36($0)		#store y in 0x24
+		mfhi		$8				#t0 = hi				
+		srl 		$18, $18, 16		#y = y >> 16
+		sll		$8, $8, 16			#t0 << 16
+		xor		$18, $8, $18		#y = y xor t0
+		divu		$18, $16			#y / c
+		mflo		$8				#t0 = y / c
+		addu		$8, $8, $16		#t0 = t0 + c
+		srl		$16, $8, 1			#s0 = t0 / 2
+		sw		$16, 44($0)		#store c into mem 0x2c
+loop:		slti		$9, $16, 1665		#t1 = (s0 < 1665) 1 : 0
+		beq		$9, $0, addloop
+		j		end
+addloop:	divu		$18, $16			#y / c
+		mflo		$8				#t0 = y / c
+		addu		$8, $16, $8		#t0 = (c + y / c)
+		srl		$16, $8, 1			#t0 / c
+		j		loop
+end:		sll		$16, $16, 8		#c = c << 8
+		sw		$16, 48($0)		#store c in mem 0x30
+ 
